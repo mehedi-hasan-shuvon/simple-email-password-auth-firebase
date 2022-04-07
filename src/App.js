@@ -1,22 +1,36 @@
 import logo from './logo.svg';
 import './App.css';
-import { getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import app from './firebase.init';
 import { Button, Form } from 'react-bootstrap';
+import { useState } from 'react';
 
 // Initialize Firebase Authentication and get a reference to the service
 const auth = getAuth(app);
 function App() {
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+
   const handelEmailBlur = (event) => {
-    console.log(event.target.value);
+    setEmail(event.target.value);
   };
   const handelPasswordBlur = (event) => {
-    console.log(event.target.value);
+    setPassword(event.target.value);
   };
 
   const handelFormSubmit = (event) => {
-    console.log("form submitted");
+    // console.log("form submitted");
+    // console.log(email, password);
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(result => {
+        const user = result.user;
+        console.log(user);
+      })
+      .catch(error => {
+        console.error(error);
+      })
     event.preventDefault();
   };
 
