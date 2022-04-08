@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { createUserWithEmailAndPassword, getAuth, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import app from './firebase.init';
 import { Button, Form } from 'react-bootstrap';
 import { useState } from 'react';
@@ -13,6 +13,13 @@ function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [registered, setRegistered] = useState(false);
+
+  const [name, setName] = useState('');
+
+
+  const handelNameBlur = (event) => {
+    setName(event.target.value);
+  };
 
 
   const handelEmailBlur = (event) => {
@@ -58,6 +65,7 @@ function App() {
           setEmail('');
           setPassword('');
           verifyEmail();
+          setUserName();
         })
         .catch(error => {
           console.error(error);
@@ -94,6 +102,17 @@ function App() {
       });
   };
 
+  const setUserName = () => {
+    updateProfile(auth.currentUser, {
+      displayName: name
+    }).then(() => {
+      console.log('updating name');
+    }).catch((error) => {
+        setError(error.message);
+      })
+  }
+
+
 
   return (
     <div className="App">
@@ -118,6 +137,16 @@ function App() {
               We'll never share your email with anyone else.
             </Form.Text>
           </Form.Group>
+
+          {!registered && <Form.Group className="mb-3" controlId="formBasicEmail">
+            <Form.Label>YourName:</Form.Label>
+            <Form.Control onBlur={handelNameBlur} type="text" placeholder="Enter your Name" required />
+            <Form.Control.Feedback type="invalid">
+              Please provide your name
+            </Form.Control.Feedback>
+            <Form.Text className="text-muted">
+            </Form.Text>
+          </Form.Group>}
 
           <Form.Group className="mb-3" controlId="formBasicPassword">
             <Form.Label>Password</Form.Label>
