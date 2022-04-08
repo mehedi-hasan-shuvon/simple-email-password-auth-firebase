@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
 import app from './firebase.init';
 import { Button, Form } from 'react-bootstrap';
 import { useState } from 'react';
@@ -12,6 +12,7 @@ function App() {
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [registered, setRegistered] = useState(false);
 
 
   const handelEmailBlur = (event) => {
@@ -38,16 +39,61 @@ function App() {
     setValidated(true);
     setError('');
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(result => {
-        const user = result.user;
-        console.log(user);
-      })
-      .catch(error => {
-        console.error(error);
-      })
+    if (registered) {
+      signInWithEmailAndPassword(auth, email, password)
+        .then(result => {
+          const user = result.user;
+          console.log(user);
+        })
+        .catch(error => {
+          console.error(error);
+          setError(error.message);
+        });
+
+    } else {
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(result => {
+          const user = result.user;
+          console.log(user);
+          setEmail('');
+          setPassword('');
+          verifyEmail();
+        })
+        .catch(error => {
+          console.error(error);
+          setError(error.message);
+        })
+    }
+
+
     event.preventDefault();
   };
+
+  const handelRegisteredChanged = (event) => {
+    // console.log(event.target.checked);
+    setRegistered(event.target.checked);
+  };
+
+
+  const verifyEmail = () => {
+    sendEmailVerification(auth.currentUser)
+      .then(() => {
+        console.log('email verification sent');
+      });
+  };
+
+  const handelPasswordReset = () => {
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        console.log('Email sent');
+      })
+      .catch((error) => {
+        // const errorCode = error.code;
+        // const errorMessage = error.message;
+        // ..
+      });
+  };
+
 
   return (
     <div className="App">
@@ -60,7 +106,7 @@ function App() {
       </form> */}
 
       <div className="registration w-50 mx-auto mt-5">
-        <h2 className='text-primary'>Please Register Bro</h2>
+        <h2 className='text-primary'>Please {registered ? 'Login' : 'Register'}</h2>
         <Form noValidate validated={validated} onSubmit={handelFormSubmit}>
           <Form.Group className="mb-3" controlId="formBasicEmail">
             <Form.Label>Email address</Form.Label>
@@ -80,12 +126,14 @@ function App() {
               Please provide a valid password more than  charecter.
             </Form.Control.Feedback>
           </Form.Group>
-          {/* <Form.Group className="mb-3" controlId="formBasicCheckbox">
-            <Form.Check type="checkbox" label="Check me out" />
-          </Form.Group> */}
+          <Form.Group className="mb-3" controlId="formBasicCheckbox">
+            <Form.Check onChange={handelRegisteredChanged} type="checkbox" label="Already registered?" />
+          </Form.Group>
           <p className='text-danger'>{error}</p>
+          <Button onClick={handelPasswordReset} variant="link">Forget password?</Button>
+          <br />
           <Button variant="primary" type="submit">
-            Submit
+            {registered ? 'Login' : 'Register'}
           </Button>
         </Form>
       </div>
